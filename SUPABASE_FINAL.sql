@@ -163,7 +163,7 @@ BEGIN
     NEW.id,
     NEW.email,
     (CASE WHEN NEW.raw_user_meta_data IS NOT NULL THEN (NEW.raw_user_meta_data ->> 'full_name') ELSE NULL END),
-    'usuario_registrado'
+    '  '
   ) ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
