@@ -1,6 +1,6 @@
 import { registerRootComponent } from 'expo';
 import 'react-native-gesture-handler';
-import './styles/global.css';
+import './app/src/styles/global.css';
 
 import App from './App';
 

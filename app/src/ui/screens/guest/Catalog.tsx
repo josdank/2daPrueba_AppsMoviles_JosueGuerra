@@ -48,9 +48,9 @@ export default function Catalog({ navigation }: any) {
         renderItem={({ item }) => (
           <PlanCard
             plan={item}
-            onPress={() => navigation.navigate('PlanDetail', { plan: item, mode: 'guest' })}
+            onPress={() => navigation.navigate('Detalle', { plan: item, mode: 'guest' })}
             actionLabel="Ver Detalles"
-            onAction={() => navigation.navigate('PlanDetail', { plan: item, mode: 'guest' })}
+            onAction={() => navigation.navigate('Detalle', { plan: item, mode: 'guest' })}
           />
         )}
       />

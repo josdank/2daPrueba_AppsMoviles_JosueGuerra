@@ -37,9 +37,9 @@ export default function Home({ navigation }: any) {
         renderItem={({ item }) => (
           <PlanCard
             plan={item}
-            onPress={() => navigation.navigate('PlanDetail', { plan: item, mode: 'user' })}
+            onPress={() => navigation.navigate('Detalle', { plan: item, mode: 'user' })}
             actionLabel="Contratar"
-            onAction={() => navigation.navigate('PlanDetail', { plan: item, mode: 'user' })}
+            onAction={() => navigation.navigate('Detalle', { plan: item, mode: 'user' })}
           />
         )}
       />

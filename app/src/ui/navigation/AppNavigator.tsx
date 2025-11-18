@@ -25,7 +25,7 @@ export default function AppNavigator() {
         {role === 'guest' && (
           <>
             <Stack.Screen name="Catalog" component={Catalog}/>
-            <Stack.Screen name="PlanDetail" component={PlanDetail}/>
+            <Stack.Screen name="Detalle" component={PlanDetail}/>
             <Stack.Screen name="LoginRegister" component={LoginRegister}/>
           </>
         )}
@@ -36,7 +36,7 @@ export default function AppNavigator() {
               component={Home}
               options={{ animation: 'none' }}
             />
-            <Stack.Screen name="PlanDetail" component={PlanDetail}/>
+            <Stack.Screen name="Detallw" component={PlanDetail}/>
             <Stack.Screen name="MyContracts" component={MyContracts}/>
             <Stack.Screen name="Chat" component={Chat}/>
             <Stack.Screen name="UserProfile" component={UserProfile}/>
