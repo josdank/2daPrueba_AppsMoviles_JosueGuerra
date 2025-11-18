@@ -9,7 +9,7 @@ import { AuthRepository } from '../../infrastructure/supabase/repositories/AuthR
 
 type UserTabParamList = {
   Catálogo: undefined;
-  MyContracts: { filter?: string; activePlanId?: string };
+  Mis_Contrataciones: { filter?: string; activePlanId?: string };
   Chat: undefined;
   UserProfile: undefined;
 };
@@ -98,12 +98,12 @@ export default function UserHeaderRight() {
   }
 
   const handleBellPress = () => {
-    navigation.navigate('MyContracts', { filter: 'pending' });
+    navigation.navigate('Mis_Contrataciones', { filter: 'pending' });
   };
 
   const handleContractCounterPress = () => {
     if (activePlan) {
-      navigation.navigate('MyContracts', { activePlanId: activePlan.id });
+      navigation.navigate('Mis_Contrataciones', { activePlanId: activePlan.id });
     } else {
       console.log('No active plan');
     }

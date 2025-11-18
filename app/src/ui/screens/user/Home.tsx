@@ -76,7 +76,7 @@ function navigateToDetalleRobust(navigation: any, plan: any) {
 
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
+    <View style={{ flex: 1, padding: 5 }}>
       <Searchbar placeholder="Buscar plan..." value={query} onChangeText={setQuery} style={{ marginVertical: 12 }}/>
       <SegmentedButtons
         value={segment} onValueChange={setSegment}
@@ -92,7 +92,7 @@ function navigateToDetalleRobust(navigation: any, plan: any) {
             primaryLabel="Chat con Asesor"
             onPrimary={() => navigation.navigate('Chat', { planId: item.id })}
             secondaryLabel="Ver Detalles"
-            onSecondary={() => navigateToDetalleRobust(navigation, item)}      // botón ver detalles
+            onSecondary={() => navigateToDetalleRobust(navigation, item)}      
           />
 
         )}

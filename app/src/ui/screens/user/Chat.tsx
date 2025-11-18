@@ -9,69 +9,111 @@ import { supabase } from '../../../infrastructure/supabase/client';
 import { subscribeTyping, emitTyping } from '../../../application/usecases/chat/typing';
 
 export default function Chat({ route, navigation }: any) {
-  const { contratacionId } = route.params || {};
+  const contratacionId = route?.params?.contratacionId;
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  async function fetchAndSetMessages() {
+  useEffect(() => {
+    if (!contratacionId) {
+      setError('Falta identificador de contratación. Vuelve atrás e intenta de nuevo.');
+      setLoading(false);
+      return;
+    }
+
+    let sub: any = null;
+    let typingSub: any = null;
+    let cancelled = false;
+
+    const fetchUserAndMessages = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUserId(user?.id ?? null);
+      } catch (e) {
+        console.error('Error getting auth user', e);
+        setCurrentUserId(null);
+      }
+
+      try {
+        const initialMessages = await ChatRepository.listMessages(contratacionId);
+        if (cancelled) return;
+        setMessages(initialMessages);
+        // si no hay mensajes, delegar el saludo automático (no pasar advisorId desde cliente)
+        if (initialMessages.length === 0) {
+          // Opción segura: no crear mensaje en nombre del asesor desde el cliente.
+          // Si necesitas que lo haga el asesor, usa una Edge Function / backend.
+          // Aquí evitamos insertar con advisorId para no violar RLS.
+        }
+      } catch (e) {
+        console.error('Error fetching messages:', e);
+        setError('No se pudieron cargar los mensajes.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+
+      try {
+        sub = ChatRepository.subscribe(contratacionId, (msg) => {
+          setMessages(prev => [...prev, msg]);
+        });
+      } catch (e) {
+        console.warn('Subscribe failed:', e);
+      }
+
+      try {
+        typingSub = ChatRepository.subscribeTyping(contratacionId, (p) => {
+          if (p.senderId && p.senderId === currentUserId) return;
+          setTyping(!!p.isTyping);
+        });
+      } catch (e) {
+        console.warn('Typing subscribe failed:', e);
+      }
+    };
+
+    fetchUserAndMessages();
+
+    return () => {
+      cancelled = true;
+      try { sub?.unsubscribe?.(); } catch {}
+      try { typingSub?.unsubscribe?.(); } catch {}
+    };
+  }, [contratacionId, currentUserId]);
+
+  async function sendMessage() {
+    if (!contratacionId) {
+      console.warn('sendMessage aborted: missing contratacionId');
+      return;
+    }
+    if (!input.trim()) return;
     try {
-      const data = await ChatRepository.listMessages(contratacionId);
-      setMessages(data);
-      return data; // Return messages for initial check
+      // ChatRepository.send ya debería validar ids; llamar solo si contratacionId existe
+      await ChatRepository.send(contratacionId, input);
+      setInput('');
+      await ChatRepository.emitTyping(contratacionId, false);
     } catch (e) {
-      console.error(e);
-      return [];
+      console.error('Error sending message:', e);
+      setError('No se pudo enviar el mensaje.');
     }
   }
 
-  useEffect(() => {
-    const fetchUserAndMessages = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        setCurrentUserId(user?.id || null);
-      } catch (e) {
-        console.error(e);
-      }
+  if (loading) return <View style={{ flex: 1, padding: 16 }}><Text>Cargando chat…</Text></View>;
 
-      const initialMessages = await fetchAndSetMessages();
-      if (initialMessages.length === 0) {
-        // If no messages, send the automatic greeting from the advisor
-        const advisorId = await AuthRepository.getAdvisorId();
-        if (advisorId) {
-          await ChatRepository.send(contratacionId, 'Hola en que te podemos ayudar.', advisorId);
-        }
-      }
-    };
-    
-    fetchUserAndMessages();
-
-    const sub = ChatRepository.subscribe(contratacionId, (msg) => {
-      setMessages(prev => [...prev, msg]);
-    });
-    const typingSub = subscribeTyping(contratacionId, (p) => setTyping(!!p.isTyping));
-    return () => {
-      sub.unsubscribe();
-      typingSub.unsubscribe();
-    };
-  }, [contratacionId]);
-
-  async function sendMessage() {
-    if (!input.trim()) return;
-    try {
-      await ChatRepository.send(contratacionId, input);
-      setInput('');
-      await emitTyping(contratacionId, false);
-    } catch (e) {
-      console.error(e);
-    }
+  if (error) {
+    return (
+      <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
+        <Text style={{ marginBottom: 12, color: 'red' }}>{error}</Text>
+        <Button mode="contained" onPress={() => navigation.goBack()}>Volver</Button>
+      </View>
+    );
   }
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 }}>
-      </View>
       <FlatList
         data={messages}
         keyExtractor={(m) => m.id}
@@ -86,7 +128,10 @@ export default function Chat({ route, navigation }: any) {
           value={input}
           onChangeText={(t) => {
             setInput(t);
-            emitTyping(contratacionId, !!t);
+            // emitir solo si tenemos contratacionId
+            if (contratacionId) {
+              ChatRepository.emitTyping(contratacionId, !!t).catch(e => console.warn('emitTyping failed', e));
+            }
           }}
           placeholder="Escribe un mensaje..."
           style={{ flex: 1 }}

@@ -1,7 +1,7 @@
 // src/ui/screens/guest/PlanDetail.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Modal, Pressable, ScrollView } from 'react-native';
-import { Text, Button, IconButton, ActivityIndicator } from 'react-native-paper';
+import { Text, Button, IconButton } from 'react-native-paper';
 import { Image } from 'expo-image';
 import { ContractsRepository } from '../../../infrastructure/supabase/repositories/ContractsRepository';
 import { AuthRepository } from '../../../infrastructure/supabase/repositories/AuthRepository';
@@ -41,7 +41,8 @@ export default function PlanDetail({ route, navigation }: any) {
       const maybeId = params?.planId ?? params?.id ?? null;
       if (maybeId) {
         try {
-          setPlan(null); 
+          // si tienes un repo para obtener plan por id, llámalo aquí
+          setPlan(null);
         } catch (err) {
           console.error('Error fetching plan by id:', err);
           setPlan(null);
@@ -65,23 +66,39 @@ export default function PlanDetail({ route, navigation }: any) {
         return;
       }
 
+      // Verificar que el usuario está autenticado y tiene perfil
       const prof = await AuthRepository.getProfile();
       if (!prof) {
+        // enviar a login/register; después del login el flujo debe crear la contratación
         navigation.navigate('LoginRegister');
         return;
       }
 
-      const contract = await ContractsRepository.create(plan.id);
-      if (!contract) {
-        console.warn('No se pudo crear la contratación');
+      // Crear o recuperar la contratación pendiente para este usuario y plan
+      const contratacion = await ContractsRepository.findOrCreateForUser(plan.id);
+      if (!contratacion || !contratacion.id) {
+        console.warn('No se pudo crear/obtener la contratación');
         return;
       }
 
-      const messageContent = `Quiero contratar este plan: ${plan.nombre_comercial}, necesito más ayuda por favor.`;
-      await sendMessage(contract.id, messageContent);
+      const contratacionId = contratacion.id;
 
-      navigation.replace?.('Chat', { contratacionId: contract.id }) ??
-        navigation.navigate('Chat', { contratacionId: contract.id });
+      // Mensaje inicial: lo enviamos como parte del usecase sendMessage (será enviado por el usuario autenticado)
+      // Si quieres que el mensaje venga del asesor, implementa una Edge Function que lo inserte con service_role.
+      const messageContent = `Quiero contratar este plan: ${plan.nombre_comercial}, necesito más ayuda por favor.`;
+      try {
+        await sendMessage(contratacionId, messageContent);
+      } catch (err) {
+        // no bloquear la navegación si falla el mensaje inicial; loggear para debugging
+        console.warn('No se pudo enviar el mensaje inicial:', err);
+      }
+
+      // Navegar al chat pasando el id de contratación
+      if (typeof navigation.replace === 'function') {
+        navigation.replace('Chat', { contratacionId });
+      } else {
+        navigation.navigate('Chat', { contratacionId });
+      }
     } catch (err) {
       console.error('Error en solicitarPlan:', err);
     }

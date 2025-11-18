@@ -1,4 +1,4 @@
-
+// src/ui/components/UserHeaderRight.tsx
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { IconButton, Menu, Avatar, Badge } from 'react-native-paper';
@@ -11,7 +11,9 @@ type Props = {
   unreadChats?: number;
   onOpenProfile?: () => void;
   onOpenChat?: () => void;
-  onOpenRequests?: () => void; // para asesor: solicitudes/contrataciones pendientes
+  onOpenRequests?: () => void;
+  onBack?: () => void; // opcional: handler personalizado para el botón atrás
+  backFallbackRoute?: string; // opcional: ruta fallback si no hay stack para goBack
 };
 
 export default function UserHeaderRight({
@@ -21,8 +23,30 @@ export default function UserHeaderRight({
   onOpenProfile,
   onOpenChat,
   onOpenRequests,
+  onBack,
+  backFallbackRoute,
 }: Props) {
   const [menuVisible, setMenuVisible] = useState(false);
+
+  const defaultFallback = role === 'asesor_comercial' ? 'AdvisorTabs' : 'UserTabs';
+  const fallbackRoute = backFallbackRoute ?? defaultFallback;
+
+  const handleBack = () => {
+    // si consume un handler personalizado, ejecutarlo
+    if (typeof onBack === 'function') {
+      return onBack();
+    }
+
+    try {
+      if (navigation?.canGoBack && navigation.canGoBack()) {
+        navigation.goBack();
+      } else if (navigation?.navigate) {
+        navigation.navigate(fallbackRoute);
+      }
+    } catch {
+      try { navigation?.navigate?.(fallbackRoute); } catch (_) { /* ignore */ }
+    }
+  };
 
   const openProfile = () => {
     setMenuVisible(false);
@@ -33,6 +57,7 @@ export default function UserHeaderRight({
   const openChat = () => {
     setMenuVisible(false);
     if (onOpenChat) return onOpenChat();
+    // si tu Chat está en rutas anidadas, invoca el parent navigator si es necesario desde el caller
     navigation?.navigate(role === 'asesor_comercial' ? 'Conversasiones' : 'Chat');
   };
 
@@ -44,6 +69,14 @@ export default function UserHeaderRight({
 
   return (
     <View style={styles.row}>
+      {/* Botón de regreso */}
+      <IconButton
+        icon="arrow-left"
+        size={22}
+        onPress={handleBack}
+        accessibilityLabel="Regresar"
+      />
+
       {/* Icono Chat con badge */}
       <View>
         <IconButton
@@ -64,26 +97,6 @@ export default function UserHeaderRight({
           accessibilityLabel="Ver solicitudes"
         />
       )}
-
-      {/* Avatar + Menu */}
-      <Menu
-        visible={menuVisible}
-        onDismiss={() => setMenuVisible(false)}
-        anchor={
-          <Avatar.Image
-            size={36}
-            source={{ uri: 'https://www.gravatar.com/avatar/?d=mp' }}
-            style={styles.avatar}
-            onTouchEnd={() => setMenuVisible(true)}
-            accessibilityLabel="Abrir menú de usuario"
-          />
-        }
-      >
-        <Menu.Item onPress={openProfile} title={role === 'asesor_comercial' ? 'Perfil Asesor' : 'Mi Perfil'} />
-        <Menu.Item onPress={openChat} title="Chats" />
-        {role === 'asesor_comercial' && <Menu.Item onPress={openRequests} title="Solicitudes" />}
-        <Menu.Item onPress={() => { setMenuVisible(false); navigation?.navigate('Settings'); }} title="Ajustes" />
-      </Menu>
     </View>
   );
 }

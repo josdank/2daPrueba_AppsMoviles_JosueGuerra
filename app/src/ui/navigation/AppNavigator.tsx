@@ -29,7 +29,7 @@ function UserTabNavigator() {
       }}
     >
       <Tab.Screen name="Catálogo" component={Home} />
-      <Tab.Screen name="MyContracts" component={MyContracts} />
+      <Tab.Screen name="Mis_Contrataciones" component={MyContracts} />
       <Tab.Screen name="Chat" component={Chat} />
       <Tab.Screen name="UserProfile" component={UserProfile} />
     </Tab.Navigator>

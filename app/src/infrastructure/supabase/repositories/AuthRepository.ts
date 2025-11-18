@@ -1,61 +1,50 @@
+// infrastructure/supabase/repositories/AuthRepository.ts
 import { supabase } from '../client';
 import type { UserProfile } from '../../../domain/entities/Plan';
 
 export const AuthRepository = {
-    async logout() {
+  async logout() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   },
-  async register(email: string, password: string, nombre?: string, rol: 'usuario_registrado' | 'asesor_comercial' = 'asesor_comercial') {
+
+  async register(
+    email: string,
+    password: string,
+    nombre?: string,
+    rol: 'usuario_registrado' | 'asesor_comercial' = 'usuario_registrado'
+  ) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
     const user = data.user;
     if (!user) throw new Error('No user created');
 
-    let hasSession = false;
+    // Intenta garantizar sesión: si no hay sesión, intenta login
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData?.session) hasSession = true;
-      else {
-        try {
-          await supabase.auth.signInWithPassword({ email, password });
-          const { data: sessionData2 } = await supabase.auth.getSession();
-          if (sessionData2?.session) hasSession = true;
-        } catch (signinErr) {
-
-        }
+      if (!sessionData?.session) {
+        await supabase.auth.signInWithPassword({ email, password });
       }
-    } catch (_) {
-
+    } catch (e) {
+      // no bloqueamos el registro por fallos de sesión automáticos
+      console.warn('Session follow-up after signUp failed:', e);
     }
+
+    // Llamada a endpoint para crear perfil si existe (opcional); no bloqueante
     try {
       const { createProfileUrl } = (await import('../../config/env')).env;
       if (createProfileUrl) {
         fetch(createProfileUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: user.id, email, nombre, rol })
+          body: JSON.stringify({ id: user.id, email, nombre, rol }),
         }).catch(e => console.warn('Failed calling createProfileUrl:', e));
       } else {
         console.log('Profile creation deferred to first login (no server endpoint configured)');
       }
-    } catch (_) {
-      console.log('Profile creation deferred to first login (env import failed)');
+    } catch (e) {
+      console.warn('Profile creation deferred (env import failed):', e);
     }
-    
-    try {
-      const { createProfileUrl } = (await import('../../config/env')).env;
-      if (!hasSession && createProfileUrl) {
-        fetch(createProfileUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: user.id, email, nombre, rol })
-        }).catch(e => console.warn('Failed calling createProfileUrl:', e));
-      }
-    } catch (_) {
-
-    }
-    
 
     return user;
   },
@@ -63,13 +52,16 @@ export const AuthRepository = {
   async login(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-
     const user = data.user;
-
 
     if (user) {
       try {
-        const { data: existing, error: selErr } = await supabase.from('perfiles').select('id').eq('id', user.id).maybeSingle();
+        const { data: existing, error: selErr } = await supabase
+          .from('perfiles')
+          .select('id')
+          .eq('id', user.id)
+          .limit(1)
+          .maybeSingle();
         if (selErr) {
           console.warn('Error checking existing profile:', selErr);
         }
@@ -96,12 +88,17 @@ export const AuthRepository = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-      const { data, error } = await supabase.from('perfiles').select('*').eq('id', user.id).maybeSingle();
+      const { data, error } = await supabase
+        .from('perfiles')
+        .select('*')
+        .eq('id', user.id)
+        .limit(1)
+        .maybeSingle();
       if (error) {
         console.warn('Error fetching profile (might be RLS):', error);
         return null;
       }
-      return data as UserProfile | null;
+      return (data as UserProfile) ?? null;
     } catch (e) {
       console.warn('Unexpected error getting profile:', e);
       return null;
@@ -116,9 +113,10 @@ export const AuthRepository = {
       .update(partial)
       .eq('id', user.id)
       .select()
-      .single();
+      .limit(1)
+      .maybeSingle();
     if (error) throw error;
-      return data as UserProfile;
+    return data as UserProfile;
   },
 
   async getAdvisorId(): Promise<string | null> {
@@ -127,12 +125,13 @@ export const AuthRepository = {
         .from('perfiles')
         .select('id')
         .eq('rol', 'asesor_comercial')
-        .single();
+        .limit(1)
+        .maybeSingle();
       if (error) {
         console.warn('Error fetching advisor profile:', error);
         return null;
       }
-      return data?.id || null;
+      return data?.id ?? null;
     } catch (e) {
       console.warn('Unexpected error getting advisor ID:', e);
       return null;

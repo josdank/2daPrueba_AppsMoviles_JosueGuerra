@@ -27,7 +27,6 @@ export default function MyContracts({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text variant="titleLarge" style={{ marginBottom: 12 }}>Mis Contrataciones</Text>
       <FlatList
         data={items}
         keyExtractor={(i) => i.id}
