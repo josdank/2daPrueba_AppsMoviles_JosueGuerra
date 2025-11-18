@@ -1,114 +1,156 @@
-// src/ui/components/UserHeaderRight.tsx
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { IconButton, Menu, Avatar, Badge } from 'react-native-paper';
+// src/ui/components/AdvisorHeaderRight.tsx
+import React, { useEffect, useRef, useState } from 'react';
+import { View, TouchableOpacity } from 'react-native';
+import { IconButton, Badge, Avatar } from 'react-native-paper';
+import { useNavigation, useIsFocused, CompositeNavigationProp } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ContractsRepository } from '../../infrastructure/supabase/repositories/ContractsRepository';
 
-type Role = 'usuario_registrado' | 'asesor_comercial';
-
-type Props = {
-  role?: Role;
-  navigation?: any;
-  unreadChats?: number;
-  onOpenProfile?: () => void;
-  onOpenChat?: () => void;
-  onOpenRequests?: () => void;
-  onBack?: () => void; // opcional: handler personalizado para el botón atrás
-  backFallbackRoute?: string; // opcional: ruta fallback si no hay stack para goBack
+type AdvisorTabParamList = {
+  Panel_de_Asesor: undefined;
+  'Contrataciones Pendientes': undefined;
+  Conversaciones: undefined;
+  'Perfil asesor': undefined;
 };
 
-export default function UserHeaderRight({
-  role = 'usuario_registrado',
-  navigation,
-  unreadChats = 0,
-  onOpenProfile,
-  onOpenChat,
-  onOpenRequests,
-  onBack,
-  backFallbackRoute,
-}: Props) {
-  const [menuVisible, setMenuVisible] = useState(false);
+type RootStackParamList = {
+  AdvisorTabs: undefined;
+  UserTabs: undefined;
+  Catalog: undefined;
+  Detalle: { plan: any; mode: string };
+  LoginRegister: undefined;
+};
 
-  const defaultFallback = role === 'asesor_comercial' ? 'AdvisorTabs' : 'UserTabs';
-  const fallbackRoute = backFallbackRoute ?? defaultFallback;
+type AdvisorHeaderRightNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<AdvisorTabParamList, 'Panel_de_Asesor'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
 
-  const handleBack = () => {
-    // si consume un handler personalizado, ejecutarlo
-    if (typeof onBack === 'function') {
-      return onBack();
+export default function AdvisorHeaderRight() {
+  const navigation = useNavigation<AdvisorHeaderRightNavigationProp>();
+  const isFocused = useIsFocused();
+  const [pendingContractsCount, setPendingContractsCount] = useState(0);
+  const [currentAssigned, setCurrentAssigned] = useState<any | null>(null);
+
+  // Tab history refs (similar behavior to UserHeaderRight)
+  const previousTabRef = useRef<string | null>(null);
+  const currentTabRef = useRef<string | null>(null);
+  const parentNavRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchPendingData();
     }
+  }, [isFocused]);
+
+  useEffect(() => {
+    const parent = navigation.getParent?.();
+    if (!parent) return;
+
+    parentNavRef.current = parent;
 
     try {
-      if (navigation?.canGoBack && navigation.canGoBack()) {
-        navigation.goBack();
-      } else if (navigation?.navigate) {
-        navigation.navigate(fallbackRoute);
-      }
+      const state = parent.getState?.();
+      const index = state?.index ?? -1;
+      const routes = state?.routes ?? [];
+      currentTabRef.current = routes?.[index]?.name ?? null;
     } catch {
-      try { navigation?.navigate?.(fallbackRoute); } catch (_) { /* ignore */ }
+      currentTabRef.current = null;
+    }
+
+    const onStateChange = () => {
+      try {
+        const state = parent.getState?.();
+        const index = state?.index ?? -1;
+        const routes = state?.routes ?? [];
+        const newTab = routes?.[index]?.name ?? null;
+
+        if (newTab && currentTabRef.current && newTab !== currentTabRef.current) {
+          previousTabRef.current = currentTabRef.current;
+        }
+        currentTabRef.current = newTab;
+      } catch {
+        // ignore
+      }
+    };
+
+    const unsub = parent.addListener?.('state', onStateChange) ?? null;
+    onStateChange();
+
+    return () => {
+      if (unsub) unsub();
+      parentNavRef.current = null;
+    };
+  }, [navigation]);
+
+  async function fetchPendingData() {
+    try {
+      const pending = await ContractsRepository.listPending();
+      setPendingContractsCount((pending ?? []).length);
+      // opcional: calcular currentAssigned si tu data lo permite
+      setCurrentAssigned(null);
+    } catch (error) {
+      console.error('Error fetching pending contracts for advisor header:', error);
+    }
+  }
+
+  const handlePendingPress = () => {
+    navigation.navigate('Contrataciones Pendientes');
+  };
+
+  const handleConversationsPress = () => {
+    navigation.navigate('Conversaciones');
+  };
+
+  const handleGoToPreviousTab = () => {
+    try {
+      const prev = previousTabRef.current;
+      if (prev) {
+        navigation.navigate(prev as any);
+        return;
+      }
+
+      if (navigation.canGoBack && navigation.canGoBack()) {
+        navigation.goBack();
+        return;
+      }
+
+      // fallback to AdvisorTabs root
+      navigation.navigate('AdvisorTabs');
+    } catch (err) {
+      console.warn('Error navigating to previous tab (advisor):', err);
     }
   };
 
   const openProfile = () => {
-    setMenuVisible(false);
-    if (onOpenProfile) return onOpenProfile();
-    navigation?.navigate(role === 'asesor_comercial' ? 'Perfil asesor' : 'UserProfile');
-  };
-
-  const openChat = () => {
-    setMenuVisible(false);
-    if (onOpenChat) return onOpenChat();
-    // si tu Chat está en rutas anidadas, invoca el parent navigator si es necesario desde el caller
-    navigation?.navigate(role === 'asesor_comercial' ? 'Conversasiones' : 'Chat');
-  };
-
-  const openRequests = () => {
-    setMenuVisible(false);
-    if (onOpenRequests) return onOpenRequests();
-    navigation?.navigate('Contrataciones Pendientes');
+    navigation.navigate('Perfil asesor');
   };
 
   return (
-    <View style={styles.row}>
-      {/* Botón de regreso */}
-      <IconButton
-        icon="arrow-left"
-        size={22}
-        onPress={handleBack}
-        accessibilityLabel="Regresar"
-      />
+    <View style={{ flexDirection: 'row', marginRight: 10, alignItems: 'center' }}>
+      {/* Back button */}
+      <TouchableOpacity onPress={handleGoToPreviousTab} style={{ marginLeft: 6, marginRight: 10 }}>
+        <IconButton icon="arrow-left" iconColor="#fff" size={22} />
+      </TouchableOpacity>
 
-      {/* Icono Chat con badge */}
-      <View>
-        <IconButton
-          icon="chat"
-          size={22}
-          onPress={openChat}
-          accessibilityLabel="Abrir chats"
-        />
-        {unreadChats > 0 && <Badge style={styles.badge}>{unreadChats}</Badge>}
-      </View>
+      {/* Pending contracts (bell-like) */}
+      <TouchableOpacity onPress={handlePendingPress} style={{ position: 'relative', marginRight: 12 }}>
+        <IconButton icon="clipboard-list" iconColor="#fff" size={24} />
+        {pendingContractsCount > 0 && (
+          <Badge style={{ position: 'absolute', top: 6, right: 6, backgroundColor: '#FF4D4F' }}>
+            {pendingContractsCount}
+          </Badge>
+        )}
+      </TouchableOpacity>
 
-      {/* Si es asesor, botón extra para Solicitudes */}
-      {role === 'asesor_comercial' && (
-        <IconButton
-          icon="file-document-outline"
-          size={22}
-          onPress={openRequests}
-          accessibilityLabel="Ver solicitudes"
-        />
-      )}
+      {/* Conversations */}
+      <TouchableOpacity onPress={handleConversationsPress} style={{ position: 'relative', marginRight: 6 }}>
+        <IconButton icon="chat" iconColor="#fff" size={24} />
+        {/* badge optional: if you compute unread count, render here */}
+      </TouchableOpacity>
+
+  
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', marginRight: 8 },
-  avatar: { marginHorizontal: 4, backgroundColor: '#ddd' },
-  badge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: '#d32f2f',
-    color: '#fff',
-  },
-});

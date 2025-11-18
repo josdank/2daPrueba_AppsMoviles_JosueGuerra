@@ -1,7 +1,6 @@
 // src/ui/screens/advisor/Dashboard.tsx
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import BottomBar from '../../components/BottomBar';
 import { Text, Button, Card } from 'react-native-paper';
 import { StyleSheet } from 'react-native';
 import { PlansRepository } from '../../../infrastructure/supabase/repositories/PlansRepository';
@@ -62,7 +61,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     color: '#ffffff',
     paddingVertical: 10,
-    backgroundColor: '#2563EB', // azul vibrante
+    backgroundColor: '#2563EB', 
     marginBottom: 12,
   },
 });

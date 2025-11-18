@@ -47,9 +47,9 @@ function AdvisorTabNavigator() {
         headerRight: () => <AdvisorHeaderRight />,
       }}
     >
-      <Tab.Screen name="Panel de Asesor" component={Dashboard} />
+      <Tab.Screen name="Catálogo" component={Home} />
       <Tab.Screen name="Contrataciones Pendientes" component={PendingContracts} />
-      <Tab.Screen name="Conversasiones" component={Conversations} />
+      <Tab.Screen name="Panel de Asesor" component={Dashboard} />
       <Tab.Screen name="Perfil asesor" component={AdvisorProfile} />
     </Tab.Navigator>
   );
