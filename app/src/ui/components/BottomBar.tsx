@@ -1,3 +1,4 @@
+// src/ui/components/BottomBar.tsx
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { IconButton, Text } from 'react-native-paper';
@@ -16,11 +17,11 @@ export default function BottomBar({ navigation, role }: Props) {
     navigation.navigate(screen, params);
   };
 
-   return (
-    <View style={[styles.container]}>
-      {/* Para usuario_registrado: Catálogo | Chat | UserProfile
+  return (
+    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+      {/* Para usuario_registrado: Catálogo | Chat(reemplazado) | UserProfile
           Para asesor_comercial: Panel de Asesor | Contrataciones Pendientes | Conversasiones | Perfil asesor */}
-      
+
       <TouchableOpacity
         style={styles.item}
         onPress={() => goTo(role === 'asesor_comercial' ? 'Panel de Asesor' : 'Catálogo')}
@@ -45,23 +46,42 @@ export default function BottomBar({ navigation, role }: Props) {
 
       <TouchableOpacity
         style={styles.item}
-        onPress={() => goTo(role === 'asesor_comercial' ? 'Conversasiones' : 'Chat')}
+        onPress={() => {
+          
+          try {
+            navigation.navigate('AdvisorTabs' as any, { screen: 'Panel de Asesor' });
+            return;
+          } catch (_) {
+          }
+
+
+          try {
+            navigation.navigate('Panel de Asesor' as any);
+            return;
+          } catch (err) {
+
+          }
+
+          try {
+            navigation.navigate('Dashboard' as any);
+            return;
+          } catch (err) {
+            console.error('No se pudo navegar al Panel de Asesor por ninguna ruta conocida', err);
+          }
+        }}
         accessibilityRole="button"
-        accessibilityLabel={role === 'asesor_comercial' ? 'Ir a conversasiones' : 'Ir al chat'}
+        accessibilityLabel={role === 'asesor_comercial' ? 'Ir al panel de asesor' : 'Ir al Dashboard'}
       >
-        <IconButton icon="chat" size={22} />
-        <Text style={styles.label}>Chats</Text>
+        <IconButton icon="plus" size={26} />
+        <Text style={styles.label}>Más</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.item}
-        onPress={() => goTo(role === 'asesor_comercial' ? 'Perfil asesor' : 'UserProfile')}
-        accessibilityRole="button"
-        accessibilityLabel={role === 'asesor_comercial' ? 'Ir al perfil de asesor' : 'Ir al perfil de usuario'}
-      >
-        <IconButton icon="account-circle" size={22} />
-        <Text style={styles.label}>Perfil</Text>
-      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.item} onPress={() => goTo(role === 'asesor_comercial' ? 'Perfil asesor' : 'UserProfile')} 
+      accessibilityRole="button" 
+      accessibilityLabel={role === 'asesor_comercial' ? 'Ir al perfil de asesor' : 'Ir al perfil de usuario'} > 
+      <IconButton icon="account-circle" size={22} /> 
+      <Text style={styles.label}>Perfil</Text> </TouchableOpacity>
     </View>
   );
 }
