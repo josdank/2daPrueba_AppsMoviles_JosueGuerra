@@ -11,7 +11,13 @@ export default function Home({ navigation }: any) {
   const [query, setQuery] = useState('');
   const [segment, setSegment] = useState<string>('Todos');
 
-  async function load() { setPlans(await PlansRepository.listActive()); }
+  async function load() { 
+    try{ 
+      setPlans(await PlansRepository.listActive()); 
+    } catch (e) { 
+      console.error(e); 
+    }
+  }
   useEffect(() => {
     load();
     const sub = subscribePlans(load);
@@ -22,10 +28,55 @@ export default function Home({ navigation }: any) {
     (!query || p.nombre_comercial.toLowerCase().includes(query.toLowerCase())) &&
     (segment === 'Todos' || (p.segmento || '').toLowerCase().includes(segment.toLowerCase()))
   );
+  // pegar en Home.tsx (encima del componente)
+function navigateToDetalleRobust(navigation: any, plan: any) {
+  const target = 'Detalle';
+  const params = { plan, mode: 'guest' };
+
+  // intento directo seguro
+  try {
+    navigation.navigate(target, params);
+    return;
+  } catch (e) { /* continue to parents */ }
+
+  // recorrer ancestros buscando routeNames que incluyan target
+  let nav: any = navigation;
+  while (nav) {
+    try {
+      const state = nav.getState?.();
+      const names = state?.routeNames || state?.routes?.map((r: any) => r.name) || [];
+      if (Array.isArray(names) && names.includes(target)) {
+        nav.navigate(target, params);
+        return;
+      }
+    } catch (err) { /* ignorar y subir */ }
+    nav = nav.getParent?.();
+  }
+
+  // intento de navegación anidada hacia un navigator padre (intenta 2 niveles arriba)
+  const firstParent = navigation.getParent?.();
+  const secondParent = firstParent?.getParent?.();
+  try {
+    if (firstParent) {
+      firstParent.navigate(target, params);
+      return;
+    }
+  } catch (err) {}
+  try {
+    if (secondParent) {
+      secondParent.navigate(target, params);
+      return;
+    }
+  } catch (err) {}
+
+  // último recurso: loguear estado para debugging
+  console.warn(`No se encontró navigator que maneje '${target}'. Revisa registro de pantallas.`);
+  console.log('Navigation state (home):', JSON.stringify(navigation.getState?.(), null, 2));
+}
+
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text variant="titleLarge">Catálogo de Planes</Text>
       <Searchbar placeholder="Buscar plan..." value={query} onChangeText={setQuery} style={{ marginVertical: 12 }}/>
       <SegmentedButtons
         value={segment} onValueChange={setSegment}
@@ -37,10 +88,13 @@ export default function Home({ navigation }: any) {
         renderItem={({ item }) => (
           <PlanCard
             plan={item}
-            onPress={() => navigation.navigate('Detalle', { plan: item, mode: 'user' })}
-            actionLabel="Contratar"
-            onAction={() => navigation.navigate('Detalle', { plan: item, mode: 'user' })}
+            onPress={() => navigateToDetalleRobust(navigation, item)}          // tocar toda la tarjeta
+            primaryLabel="Chat con Asesor"
+            onPrimary={() => navigation.navigate('Chat', { planId: item.id })}
+            secondaryLabel="Ver Detalles"
+            onSecondary={() => navigateToDetalleRobust(navigation, item)}      // botón ver detalles
           />
+
         )}
       />
     </View>

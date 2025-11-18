@@ -2,7 +2,11 @@ import { supabase } from '../client';
 import type { UserProfile } from '../../../domain/entities/Plan';
 
 export const AuthRepository = {
-  async register(email: string, password: string, nombre?: string, rol: 'usuario_registrado' | 'asesor_comercial' = 'usuario_registrado') {
+    async logout() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
+  async register(email: string, password: string, nombre?: string, rol: 'usuario_registrado' | 'asesor_comercial' = 'asesor_comercial') {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
     const user = data.user;
@@ -51,6 +55,7 @@ export const AuthRepository = {
     } catch (_) {
 
     }
+    
 
     return user;
   },
@@ -113,8 +118,24 @@ export const AuthRepository = {
       .select()
       .single();
     if (error) throw error;
-    return data as UserProfile;
+      return data as UserProfile;
   },
 
-  async logout() { await supabase.auth.signOut(); }
+  async getAdvisorId(): Promise<string | null> {
+    try {
+      const { data, error } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('rol', 'asesor_comercial')
+        .single();
+      if (error) {
+        console.warn('Error fetching advisor profile:', error);
+        return null;
+      }
+      return data?.id || null;
+    } catch (e) {
+      console.warn('Unexpected error getting advisor ID:', e);
+      return null;
+    }
+  },
 };

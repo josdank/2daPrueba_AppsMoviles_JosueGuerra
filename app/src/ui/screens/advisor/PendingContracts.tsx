@@ -40,7 +40,6 @@ export default function PendingContracts() {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text variant="titleLarge" style={{ marginBottom: 12 }}>Contrataciones Pendientes</Text>
       <FlatList
         data={items}
         keyExtractor={(i) => i.id}

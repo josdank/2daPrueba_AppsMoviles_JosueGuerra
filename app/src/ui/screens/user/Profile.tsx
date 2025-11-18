@@ -23,9 +23,13 @@ export default function Profile({ navigation }: any) {
   async function logout() {
     try {
       await AuthRepository.logout();
-      navigation.reset({ index: 0, routes: [{ name: 'Catalog' }] });
+      // Redirigir al stack de invitado
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Catalog' }],
+      });
     } catch (e) {
-      console.error(e);
+      console.warn('Error al cerrar sesión:', e);
     }
   }
 
@@ -39,7 +43,6 @@ export default function Profile({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text variant="titleLarge" style={{ marginBottom: 16 }}>Mi Perfil</Text>
       <Avatar.Image size={64} source={{ uri: `https://ui-avatars.com/api/?name=${profile.nombre || profile.email}` }} style={{ marginBottom: 16 }} />
       <Text variant="bodyLarge">Email: {profile.email}</Text>
       <Text variant="bodyLarge" style={{ marginTop: 8 }}>Nombre: {profile.nombre || 'No definido'}</Text>
@@ -47,6 +50,7 @@ export default function Profile({ navigation }: any) {
       <Button mode="contained" onPress={logout} style={{ marginTop: 24 }}>
         Cerrar Sesión
       </Button>
+
     </View>
   );
 }

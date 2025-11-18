@@ -1,6 +1,7 @@
 // src/ui/screens/advisor/Conversations.tsx
 import React, { useEffect, useState } from 'react';
 import { View, FlatList } from 'react-native';
+import BottomBar from '../../components/BottomBar';
 import { Text, Button, Card } from 'react-native-paper';
 import { ContractsRepository } from '../../../infrastructure/supabase/repositories/ContractsRepository';
 
@@ -24,10 +25,6 @@ export default function Conversations({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 }}>
-        <Button icon="arrow-left" mode="text" onPress={() => navigation.goBack()}>Volver</Button>
-        <Text variant="titleLarge">Mis Conversaciones</Text>
-      </View>
       <FlatList
         data={items}
         keyExtractor={(i) => i.id}

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Text, Button, Avatar } from 'react-native-paper';
+import BottomBar from '../../components/BottomBar';
 import { AuthRepository } from '../../../infrastructure/supabase/repositories/AuthRepository';
 
 export default function AdvisorProfile({ navigation }: any) {
@@ -23,9 +24,13 @@ export default function AdvisorProfile({ navigation }: any) {
   async function logout() {
     try {
       await AuthRepository.logout();
-      navigation.reset({ index: 0, routes: [{ name: 'Catalog' }] });
+      // Redirigir al stack de invitado
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Catalog' }],
+      });
     } catch (e) {
-      console.error(e);
+      console.warn('Error al cerrar sesión:', e);
     }
   }
 
@@ -39,7 +44,6 @@ export default function AdvisorProfile({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text variant="titleLarge" style={{ marginBottom: 16 }}>Mi Perfil</Text>
       <Avatar.Image size={64} source={{ uri: `https://ui-avatars.com/api/?name=${profile.nombre || profile.email}` }} style={{ marginBottom: 16 }} />
       <Text variant="bodyLarge">Email: {profile.email}</Text>
       <Text variant="bodyLarge" style={{ marginTop: 8 }}>Nombre: {profile.nombre || 'No definido'}</Text>

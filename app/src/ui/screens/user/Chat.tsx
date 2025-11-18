@@ -4,6 +4,7 @@ import { View, FlatList } from 'react-native';
 import { Text, TextInput, Button } from 'react-native-paper';
 import ChatBubble from '../../components/ChatBubble';
 import { ChatRepository } from '../../../infrastructure/supabase/repositories/ChatRepository';
+import { AuthRepository } from '../../../infrastructure/supabase/repositories/AuthRepository';
 import { supabase } from '../../../infrastructure/supabase/client';
 import { subscribeTyping, emitTyping } from '../../../application/usecases/chat/typing';
 
@@ -14,26 +15,38 @@ export default function Chat({ route, navigation }: any) {
   const [typing, setTyping] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  async function loadMessages() {
+  async function fetchAndSetMessages() {
     try {
       const data = await ChatRepository.listMessages(contratacionId);
       setMessages(data);
+      return data; // Return messages for initial check
     } catch (e) {
       console.error(e);
+      return [];
     }
   }
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndMessages = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUserId(user?.id || null);
       } catch (e) {
         console.error(e);
       }
+
+      const initialMessages = await fetchAndSetMessages();
+      if (initialMessages.length === 0) {
+        // If no messages, send the automatic greeting from the advisor
+        const advisorId = await AuthRepository.getAdvisorId();
+        if (advisorId) {
+          await ChatRepository.send(contratacionId, 'Hola en que te podemos ayudar.', advisorId);
+        }
+      }
     };
-    fetchUser();
-    loadMessages();
+    
+    fetchUserAndMessages();
+
     const sub = ChatRepository.subscribe(contratacionId, (msg) => {
       setMessages(prev => [...prev, msg]);
     });
@@ -58,8 +71,6 @@ export default function Chat({ route, navigation }: any) {
   return (
     <View style={{ flex: 1, padding: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 }}>
-        <Button icon="arrow-left" mode="text" onPress={() => navigation.goBack()}>Volver</Button>
-        <Text variant="titleLarge">Chat</Text>
       </View>
       <FlatList
         data={messages}

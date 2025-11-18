@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import 'react-native-gesture-handler';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { LogBox } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AppNavigator from './app/src/ui/navigation/AppNavigator';
 import { theme } from './app/src/ui/theme';
 import { initializeNotifications } from './app/src/application/services/notificationService';
@@ -44,7 +45,12 @@ export default function App() {
 
   return (
     <PaperProvider theme={theme}>
-      <AppNavigator />
+      <LinearGradient
+        colors={['#0E0E12', '#16171D']}
+        style={{ flex: 1 }}
+      >
+        <AppNavigator />
+      </LinearGradient>
     </PaperProvider>
   );
 }

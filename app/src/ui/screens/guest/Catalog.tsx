@@ -32,11 +32,15 @@ export default function Catalog({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text variant="titleLarge" style={{ marginBottom: 8 }}>Catálogo de Planes</Text>
       <Searchbar placeholder="Buscar plan..." value={query} onChangeText={setQuery} style={{ marginVertical: 12 }}/>
       <SegmentedButtons
         value={segment} onValueChange={setSegment}
-        buttons={[{ value: 'Todos', label: 'Todos' }, { value: 'Básico', label: 'Básico' }, { value: 'Medio', label: 'Medio' }, { value: 'Premium', label: 'Premium' }]}
+        buttons={[
+          { value: 'Todos', label: 'Todos' },
+          { value: 'Básico', label: 'Básico' },
+          { value: 'Medio', label: 'Medio' },
+          { value: 'Premium', label: 'Premium' }
+        ]}
         style={{ marginBottom: 12 }}
       />
       <Button mode="contained" onPress={() => navigation.navigate('LoginRegister')} style={{ marginBottom: 12 }}>
@@ -49,8 +53,8 @@ export default function Catalog({ navigation }: any) {
           <PlanCard
             plan={item}
             onPress={() => navigation.navigate('Detalle', { plan: item, mode: 'guest' })}
-            actionLabel="Ver Detalles"
-            onAction={() => navigation.navigate('Detalle', { plan: item, mode: 'guest' })}
+            secondaryLabel="Ver Detalles"
+            onSecondary={() => navigation.navigate('Detalle', { plan: item, mode: 'guest' })}
           />
         )}
       />

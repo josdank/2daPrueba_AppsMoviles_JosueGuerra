@@ -12,12 +12,17 @@ export const ChatRepository = {
     return data ?? [];
   },
 
-  async send(contratacionId: string, contenido: string) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('No auth');
+  async send(contratacionId: string, contenido: string, senderId?: string) {
+    let userId = senderId;
+    if (!userId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No auth');
+      userId = user.id;
+    }
+
     const { data, error } = await supabase
       .from('mensajes_chat')
-      .insert({ contratacion_id: contratacionId, sender_id: user.id, contenido })
+      .insert({ contratacion_id: contratacionId, sender_id: userId, contenido })
       .select()
       .single();
     if (error) throw error;
