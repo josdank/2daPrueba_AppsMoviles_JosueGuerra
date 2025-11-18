@@ -17,15 +17,12 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.safronjos.tigoconecta",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "package": "com.tigo.conecta",
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff",
-        "versionCode": 1
+        "backgroundColor": "#ffffff"
       },
-      "plugins": [
-        "expo-notifications"
-      ],
       "updates": {
         "fallbackToCacheTimeout": 0
       },
@@ -35,6 +32,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      "expo-notifications"
+    ],
     "extra": {
       "eas": {
         "projectId": "4a1d5833-d44a-44ae-8f95-4600cbb7a29c"
