@@ -10,7 +10,9 @@ export default function Conversations({ navigation }: any) {
   async function load() {
     try {
       const data = await ContractsRepository.listPending();
-      setItems(data);
+      // Filter to show only active conversations (excluding rejected)
+      const activeConversations = data.filter((item: any) => item.estado !== 'rechazado');
+      setItems(activeConversations);
     } catch (e) {
       console.error(e);
     }
@@ -22,7 +24,10 @@ export default function Conversations({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text variant="titleLarge" style={{ marginBottom: 12 }}>Mis Conversaciones</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 }}>
+        <Button icon="arrow-left" mode="text" onPress={() => navigation.goBack()}>Volver</Button>
+        <Text variant="titleLarge">Mis Conversaciones</Text>
+      </View>
       <FlatList
         data={items}
         keyExtractor={(i) => i.id}

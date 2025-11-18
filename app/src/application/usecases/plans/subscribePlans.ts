@@ -1,4 +1,3 @@
-// src/application/usecases/plans/subscribePlans.ts
 import { supabase } from "../../../infrastructure/supabase/client";
 
 export function subscribePlans(onChange: () => void) {

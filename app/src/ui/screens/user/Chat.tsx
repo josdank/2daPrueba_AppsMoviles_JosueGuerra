@@ -7,11 +7,12 @@ import { ChatRepository } from '../../../infrastructure/supabase/repositories/Ch
 import { supabase } from '../../../infrastructure/supabase/client';
 import { subscribeTyping, emitTyping } from '../../../application/usecases/chat/typing';
 
-export default function Chat({ route }: any) {
+export default function Chat({ route, navigation }: any) {
   const { contratacionId } = route.params || {};
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   async function loadMessages() {
     try {
@@ -23,6 +24,15 @@ export default function Chat({ route }: any) {
   }
 
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUserId(user?.id || null);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchUser();
     loadMessages();
     const sub = ChatRepository.subscribe(contratacionId, (msg) => {
       setMessages(prev => [...prev, msg]);
@@ -47,12 +57,15 @@ export default function Chat({ route }: any) {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text variant="titleLarge" style={{ marginBottom: 12 }}>Chat</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 }}>
+        <Button icon="arrow-left" mode="text" onPress={() => navigation.goBack()}>Volver</Button>
+        <Text variant="titleLarge">Chat</Text>
+      </View>
       <FlatList
         data={messages}
         keyExtractor={(m) => m.id}
         renderItem={({ item }) => (
-          <ChatBubble message={item} isMine={item.sender_id === supabase.auth.getUser().then(u => u.data?.user?.id)} />
+          <ChatBubble message={item.contenido} isMine={item.sender_id === currentUserId} />
         )}
         style={{ flex: 1, marginBottom: 12 }}
       />

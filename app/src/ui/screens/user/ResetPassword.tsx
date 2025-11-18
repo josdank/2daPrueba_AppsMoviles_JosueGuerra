@@ -22,6 +22,7 @@ export default function ResetPassword({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
+      <Button icon="arrow-left" mode="text" onPress={() => navigation.goBack()} style={{ alignSelf: 'flex-start', marginBottom: 8 }}>Volver</Button>
       <Text variant="titleLarge" style={{ marginBottom: 16 }}>Restablecer Contraseña</Text>
       <TextInput
         label="Email"
@@ -35,9 +36,6 @@ export default function ResetPassword({ navigation }: any) {
       </Button>
       {error && <HelperText type="error" visible={!!error}>{error}</HelperText>}
       {message && <Text style={{ color: '#48C9B0', marginTop: 12 }}>{message}</Text>}
-      <Button onPress={() => navigation.goBack()} style={{ marginTop: 16 }}>
-        Volver
-      </Button>
     </View>
   );
 }

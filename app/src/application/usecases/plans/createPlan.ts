@@ -1,4 +1,3 @@
-// src/application/usecases/plans/createPlan.ts
 import { PlansRepository } from '../../../infrastructure/supabase/repositories/PlansRepository';
 import type { Plan } from '../../../domain/entities/Plan';
 

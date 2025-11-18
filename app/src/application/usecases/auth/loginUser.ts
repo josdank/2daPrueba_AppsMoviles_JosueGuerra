@@ -1,4 +1,3 @@
-// src/application/usecases/auth/loginUser.ts
 import { AuthRepository } from '../../../infrastructure/supabase/repositories/AuthRepository';
 
 export async function loginUser(email: string, password: string) {

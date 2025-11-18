@@ -1,4 +1,3 @@
-// src/domain/entities/ChatMessage.ts
 export type ChatMessage = {
   id: string;
   contratacion_id: string;

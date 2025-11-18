@@ -1,4 +1,3 @@
-// src/ui/components/FormTextInput.tsx
 import React from 'react';
 import { Controller } from 'react-hook-form';
 import { TextInput, HelperText } from 'react-native-paper';

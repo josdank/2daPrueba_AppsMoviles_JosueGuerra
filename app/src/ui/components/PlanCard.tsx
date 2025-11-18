@@ -1,4 +1,3 @@
-// src/ui/components/PlanCard.tsx
 import React from 'react';
 import { Card, Text, Button } from 'react-native-paper';
 import { Image } from 'expo-image';

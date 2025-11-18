@@ -1,4 +1,3 @@
-// src/infrastructure/supabase/repositories/PlansRepository.ts
 import { supabase } from '../client';
 import type { Plan } from '../../../domain/entities/Plan';
 

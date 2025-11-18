@@ -1,5 +1,3 @@
-// src/infrastructure/config/androidConfig.ts
-// Configuración específica para Android
 export const androidConfig = {
   minSdkVersion: 24,
   targetSdkVersion: 34,
@@ -14,7 +12,7 @@ export const androidConfig = {
     default: {
       id: 'default',
       name: 'Default Notifications',
-      importance: 4, // AndroidImportance.MAX
+      importance: 4, 
       vibration: true,
       sound: true,
     },

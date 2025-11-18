@@ -1,4 +1,3 @@
-// src/infrastructure/supabase/repositories/ContractsRepository.ts
 import { supabase } from '../client';
 import type { Contract } from '../../../domain/entities/Plan';
 export const ContractsRepository = {

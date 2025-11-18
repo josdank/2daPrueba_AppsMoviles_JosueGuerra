@@ -1,4 +1,3 @@
-// src/application/usecases/contracts/createContract.ts
 import { ContractsRepository } from '../../../infrastructure/supabase/repositories/ContractsRepository';
 
 export async function createContract(planId: string) {

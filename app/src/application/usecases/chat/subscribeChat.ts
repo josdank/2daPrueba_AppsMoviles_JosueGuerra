@@ -1,4 +1,3 @@
-// src/application/usecases/chat/subscribeChat.ts
 import { ChatRepository } from '../../../infrastructure/supabase/repositories/ChatRepository';
 import type { ChatMessage } from '../../../domain/entities/ChatMessage';
 

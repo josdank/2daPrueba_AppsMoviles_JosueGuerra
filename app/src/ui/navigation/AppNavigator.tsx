@@ -13,9 +13,15 @@ const Stack = createNativeStackNavigator();
 export default function AppNavigator() {
   const { role, loading } = useAuthRole();
   if (loading) return <Splash />;
+  
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <NavigationContainer
+      onReady={() => {
+        // Dar tiempo para que la navegación se estabilice
+      }}
+    >
+      {/* Activamos headerShown:true para que aparezca el botón de retroceso */}
+      <Stack.Navigator screenOptions={{ headerShown: true }}>
         {role === 'guest' && (
           <>
             <Stack.Screen name="Catalog" component={Catalog}/>
@@ -25,7 +31,11 @@ export default function AppNavigator() {
         )}
         {role === 'usuario_registrado' && (
           <>
-            <Stack.Screen name="Home" component={Home}/>
+            <Stack.Screen 
+              name="Home" 
+              component={Home}
+              options={{ animation: 'none' }}
+            />
             <Stack.Screen name="PlanDetail" component={PlanDetail}/>
             <Stack.Screen name="MyContracts" component={MyContracts}/>
             <Stack.Screen name="Chat" component={Chat}/>
@@ -35,7 +45,11 @@ export default function AppNavigator() {
         )}
         {role === 'asesor_comercial' && (
           <>
-            <Stack.Screen name="Dashboard" component={Dashboard}/>
+            <Stack.Screen 
+              name="Dashboard" 
+              component={Dashboard}
+              options={{ animation: 'none' }}
+            />
             <Stack.Screen name="PlanForm" component={PlanForm}/>
             <Stack.Screen name="PendingContracts" component={PendingContracts}/>
             <Stack.Screen name="Conversations" component={Conversations}/>

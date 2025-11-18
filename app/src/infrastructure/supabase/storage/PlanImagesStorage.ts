@@ -1,4 +1,3 @@
-// src/infrastructure/supabase/storage/PlanImagesStorage.ts
 import { supabase } from '../client';
 import * as FileSystem from 'expo-file-system';
 

@@ -1,4 +1,3 @@
-// src/application/usecases/chat/typing.ts
 import { supabase } from "../../../infrastructure/supabase/client";
 export function subscribeTyping(contratacionId: string, onTyping: (payload: any) => void) {
   return supabase.channel(`typing:${contratacionId}`).on('broadcast', { event: 'typing' }, (p) => onTyping(p.payload)).subscribe();

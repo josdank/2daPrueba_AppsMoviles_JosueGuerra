@@ -1,4 +1,3 @@
-// src/domain/entities/Plan.ts
 export type Plan = {
   id: string;
   nombre_comercial: string;
