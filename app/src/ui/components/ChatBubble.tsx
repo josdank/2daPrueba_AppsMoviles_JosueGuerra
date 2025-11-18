@@ -1,0 +1,19 @@
+// src/ui/components/ChatBubble.tsx
+import React from 'react';
+import { View } from 'react-native';
+import { Text } from 'react-native-paper';
+
+export default function ChatBubble({ message, isMine }: any) {
+  return (
+    <View style={{
+      alignSelf: isMine ? 'flex-end' : 'flex-start',
+      backgroundColor: isMine ? '#48C9B0' : '#2A2B33',
+      borderRadius: 12,
+      padding: 8,
+      marginVertical: 4,
+      maxWidth: '80%'
+    }}>
+      <Text style={{ color: '#fff' }}>{message.contenido}</Text>
+    </View>
+  );
+}
