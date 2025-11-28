@@ -10,7 +10,7 @@ import { ContractsRepository } from '../../infrastructure/supabase/repositories/
 type AdvisorTabParamList = {
   Panel_de_Asesor: undefined;
   'Contrataciones Pendientes': undefined;
-  Conversaciones: undefined;
+  'Conversaciones': undefined;
   'Perfil asesor': undefined;
 };
 

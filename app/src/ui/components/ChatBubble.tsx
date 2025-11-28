@@ -7,7 +7,7 @@ export default function ChatBubble({ message, isMine }: any) {
   return (
     <View style={{
       alignSelf: isMine ? 'flex-end' : 'flex-start',
-      backgroundColor: isMine ? '#48C9B0' : '#2A2B33',
+      backgroundColor: isMine ? '#48C9B0' : '#000000ff',
       borderRadius: 12,
       padding: 8,
       marginVertical: 4,

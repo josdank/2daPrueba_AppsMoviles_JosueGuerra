@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   createBtn: {
     borderRadius: 10,
-    color: '#ffffff',
+    color: '#7e3232ff',
     paddingVertical: 10,
     backgroundColor: '#2563EB', 
     marginBottom: 12,

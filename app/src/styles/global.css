@@ -1,8 +1,8 @@
 :root{
   --bg-gradient-start: #2b6df6;
   --bg-gradient-end: #7b5cf6;
-  --card-bg: #ffffff;
-  --muted: #6b6b6b;
+  --card-bg: #494949;
+  --muted: #000000;
   --primary: #1f6feb;
   --success: #10b981;
   --danger: #ef4444;

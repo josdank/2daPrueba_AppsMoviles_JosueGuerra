@@ -24,7 +24,7 @@
       "targetSdkVersion": 34,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#010101"
       },
       "permissions": [
         "android.permission.POST_NOTIFICATIONS",
